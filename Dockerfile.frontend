@@ -1,0 +1,29 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install system dependencies including unzip
+RUN apt-get update && apt-get install -y \
+    unzip \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
+COPY pyproject.toml uv.lock ./
+
+RUN uv sync --frozen --no-dev --group frontend
+
+COPY . .
+
+# Don't run reflex init as it can cause conflicts with existing setup
+# The rxconfig.py is already configured
+
+EXPOSE 3000
+
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app
+
+# Use exec form to ensure proper signal handling
+CMD ["uv", "run", "reflex", "run", "--host", "0.0.0.0"]
+

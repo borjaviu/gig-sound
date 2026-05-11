@@ -1,0 +1,108 @@
+x-common:
+  &common
+  image: gig-sound-api:local
+  build:
+    context: .
+    args:
+      DOCKER_BUILDKIT: 1
+      DEVELOPMENT: "True"
+  env_file:
+    - .env
+  volumes:
+    - ./:/app
+
+x-frontend-common:
+  &frontend-common
+  build:
+    context: .
+    dockerfile: Dockerfile.frontend
+    args:
+      DOCKER_BUILDKIT: 1
+      DEVELOPMENT: "True"
+  env_file:
+    - .env
+  volumes:
+    - ./:/app
+
+services:
+  backend:
+    <<: *common
+    command: "uv run uvicorn backend.infrastructure.api.main:app --host 0.0.0.0 --port 8080 --reload"
+    environment:
+      WATCHFILES_FORCE_POLLING: 1
+    develop:
+      watch:
+        - action: sync
+          path: ./
+          target: /app/
+        - action: rebuild
+          path: poetry.lock
+    ports:
+      - "8080:8080"
+    links:
+      - database
+    depends_on:
+      - database
+
+  frontend:
+    <<: *frontend-common
+    command: "uv run reflex run"
+    environment:
+      - WATCHFILES_FORCE_POLLING=1
+      - BACKEND_API_URL=http://backend:8080
+    ports:
+      - "3000:3000"
+      - "8000:8000"
+    links:
+      - backend
+    depends_on:
+      - backend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"] 
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    develop:
+      watch:
+        - action: sync
+          path: ./
+          target: /app/
+
+  database:
+    image: postgres:16.1-bookworm
+    restart: always
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgresql_data:/var/lib/postgresql
+    healthcheck:
+      test: [ "CMD-SHELL", "sh -c 'pg_isready -U postgres -d postgres'" ]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  # frontend-tests:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.test-frontend
+  #   container_name: gig-sound-frontend-tests
+  #   volumes:
+  #     # Mount the project directory for live code changes
+  #     # - .:/app
+  #     # Mount a volume for Playwright test results
+  #     - ./test-results:/app/test-results
+  #   environment:
+  #     - PYTHONPATH=/app
+  #     - BACKEND_API_URL=http://backend:8080
+  #     - REFLEX_URL=http://frontend:3000
+  #   # network_mode: host
+  #   # Override command if needed
+  #   # command: pytest frontend/tests/test_login.py -v
+
+volumes:
+  postgresql_data:

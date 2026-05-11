@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  frontend-tests:
+    build:
+      context: .
+      dockerfile: Dockerfile.test-frontend
+    container_name: gig-sound-frontend-tests
+    volumes:
+      # Mount the project directory for live code changes
+      - .:/app
+      # Mount a volume for Playwright test results
+      - ./test-results:/app/test-results
+    environment:
+      - PYTHONPATH=/app
+      - BACKEND_API_URL=http://host.docker.internal:8080
+      - REFLEX_URL=http://host.docker.internal:3000
+    network_mode: host
+    # Override command if needed
+    # command: pytest frontend/tests/test_login.py -v

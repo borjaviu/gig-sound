@@ -1,0 +1,21 @@
+-------------------------------------------------------------------------------
+Test set: com.gigsound.e2e.DebugPurchaseE2ETest
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 19.45 s <<< FAILURE! -- in com.gigsound.e2e.DebugPurchaseE2ETest
+com.gigsound.e2e.DebugPurchaseE2ETest.traceFlow -- Time elapsed: 18.38 s <<< ERROR!
+org.openqa.selenium.TimeoutException: 
+Expected condition failed: waiting for element to be clickable: By.xpath: //button[contains(normalize-space(.), 'Events')] (tried for 15 second(s) with 500 milliseconds interval)
+Build info: version: '4.14.1', revision: '03f8ede370'
+System info: os.name: 'Linux', os.arch: 'amd64', os.version: '6.6.87.2-microsoft-standard-WSL2', java.version: '25.0.2'
+Driver info: org.openqa.selenium.remote.RemoteWebDriver
+Capabilities {acceptInsecureCerts: false, browserName: chrome, browserVersion: 147.0.7727.55, chrome: {chromedriverVersion: 147.0.7727.56 (b28eac7a1a97..., userDataDir: /tmp/org.chromium.Chromium....}, fedcm:accounts: true, goog:chromeOptions: {debuggerAddress: localhost:41558}, goog:processID: 4048, networkConnectionEnabled: false, pageLoadStrategy: normal, platformName: linux, proxy: Proxy(), se:bidiEnabled: false, se:cdp: ws://172.20.0.1:4444/sessio..., se:cdpVersion: 147.0.7727.55, se:containerName: BORJAPC, se:deleteSessionOnUi: true, se:downloadsEnabled: true, se:noVncPort: 7900, se:vnc: ws://172.20.0.1:4444/sessio..., se:vncEnabled: true, se:vncLocalAddress: ws://172.20.0.1:7900, setWindowRect: true, strictFileInteractability: false, timeouts: {implicit: 0, pageLoad: 300000, script: 30000}, unhandledPromptBehavior: dismiss and notify, webauthn:extension:credBlob: true, webauthn:extension:largeBlob: true, webauthn:extension:minPinLength: true, webauthn:extension:prf: true, webauthn:virtualAuthenticators: true}
+Session ID: 5c760ac932b7f25a4d519c0bb3d08a1f
+	at org.openqa.selenium.support.ui.WebDriverWait.timeoutException(WebDriverWait.java:84)
+	at org.openqa.selenium.support.ui.FluentWait.until(FluentWait.java:230)
+	at com.gigsound.e2e.AbstractE2ETest.waitForButtonWithText(AbstractE2ETest.java:51)
+	at com.gigsound.e2e.AbstractE2ETest.clickButtonWithText(AbstractE2ETest.java:56)
+	at com.gigsound.e2e.DebugPurchaseE2ETest.traceFlow(DebugPurchaseE2ETest.java:32)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+

@@ -1,0 +1,11 @@
+/home/borja/projects/gig-sound/backend-java/src/test/java/com/gigsound/e2e/ViewSalesE2ETest.java
+/home/borja/projects/gig-sound/backend-java/src/test/java/com/gigsound/infrastructure/api/controller/UserControllerTest.java
+/home/borja/projects/gig-sound/backend-java/src/test/java/com/gigsound/infrastructure/api/controller/OrderControllerTest.java
+/home/borja/projects/gig-sound/backend-java/src/test/java/com/gigsound/application/usecase/GetEventSalesUseCaseTest.java
+/home/borja/projects/gig-sound/backend-java/src/test/java/com/gigsound/application/usecase/PurchaseOrderUseCaseTest.java
+/home/borja/projects/gig-sound/backend-java/src/test/java/com/gigsound/e2e/LoginE2ETest.java
+/home/borja/projects/gig-sound/backend-java/src/test/java/com/gigsound/application/usecase/CancelOrderUseCaseTest.java
+/home/borja/projects/gig-sound/backend-java/src/test/java/com/gigsound/e2e/PurchaseTicketE2ETest.java
+/home/borja/projects/gig-sound/backend-java/src/test/java/com/gigsound/e2e/AbstractE2ETest.java
+/home/borja/projects/gig-sound/backend-java/src/test/java/com/gigsound/infrastructure/api/controller/EventControllerTest.java
+/home/borja/projects/gig-sound/backend-java/src/test/java/com/gigsound/e2e/CancelOrderE2ETest.java
