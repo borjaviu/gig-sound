@@ -1,0 +1,22 @@
+FROM node:20-alpine
+
+RUN npm install -g newman newman-reporter-htmlextra
+
+WORKDIR /etc/newman
+
+COPY GigSound_Actividad4.postman_collection.json .
+COPY GigSound_Local.postman_environment.json .
+
+RUN mkdir -p /etc/newman/reports
+
+ENV BASE_URL=http://localhost:8080
+
+CMD ["sh", "-c", \
+     "newman run GigSound_Actividad4.postman_collection.json \
+      --environment GigSound_Local.postman_environment.json \
+      --env-var baseUrl=${BASE_URL} \
+      --reporters cli,htmlextra \
+      --reporter-htmlextra-export /etc/newman/reports/newman-report.html \
+      --reporter-htmlextra-title 'GigSound - Actividad 4 - Pruebas API' \
+      --reporter-htmlextra-logs \
+      --bail"]

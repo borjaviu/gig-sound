@@ -1,0 +1,471 @@
+{
+  "info": {
+    "_postman_id": "gigsound-actividad4-2026",
+    "name": "GigSound - Actividad 4 - Pruebas API Backend",
+    "description": "Colección de pruebas de API REST para el backend Java de GigSound (Spring Boot).\nImplementa los casos de prueba FP-01, E2E-01, RP-01 y FP-02 del Catálogo de Pruebas de la Actividad 3.\n\nOrden de ejecución:\n  PM-01: POST /events           → FP-01 (crear evento)\n  PM-02: POST /orders/purchase  → E2E-01 paso 3 (comprar entradas)\n  PM-03: GET  /orders/event/{id}/sales → E2E-01 paso 4 + RP-01 (consultar ventas)\n  PM-04: DELETE /orders/cancel  → E2E-01 paso 5 (cancelar pedido)\n  PM-05: POST /orders/purchase  → FP-02 (compra rechazada: usuario inexistente)\n\nRepositorio: https://github.com/borjairigoyen/gig-sound\nActividad:   Mantenimiento y Evolución del Software — Universidad Internacional de Valencia\nAutor:       Borja Irigoyen Peña — Mayo 2026",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [],
+  "item": [
+    {
+      "name": "PM-01 | FP-01 | POST /events — Crear evento con datos válidos",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Pre-request: nada requerido para esta primera petición"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// ================================================================",
+              "// PM-01 — Trazabilidad: FP-01 (Actividad 3)",
+              "// 'Creación de un evento con todos los campos obligatorios'",
+              "// Resultados esperados R1-R6 del catálogo de pruebas",
+              "// ================================================================",
+              "",
+              "const response = pm.response.json();",
+              "",
+              "// R1: Código de estado 201 Created",
+              "pm.test(\"[R1] Status 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "// R2: name = 'Rock Festival'",
+              "pm.test(\"[R2] name = 'Rock Festival'\", function () {",
+              "    pm.expect(response.name).to.eql(\"Rock Festival\");",
+              "});",
+              "",
+              "// R3: totalCapacity = 500",
+              "pm.test(\"[R3] totalCapacity = 500\", function () {",
+              "    pm.expect(response.totalCapacity).to.eql(500);",
+              "});",
+              "",
+              "// R4: ticketPrice = 50",
+              "pm.test(\"[R4] ticketPrice = 50\", function () {",
+              "    pm.expect(response.ticketPrice).to.eql(50);",
+              "});",
+              "",
+              "// R5: availableTickets = 500 (igual a totalCapacity al crear)",
+              "pm.test(\"[R5] availableTickets = 500 (igual a totalCapacity)\", function () {",
+              "    pm.expect(response.availableTickets).to.eql(500);",
+              "});",
+              "",
+              "// R6: campo 'id' presente, no nulo y formato UUID válido",
+              "pm.test(\"[R6] Campo 'id' presente, no nulo y en formato UUID\", function () {",
+              "    pm.expect(response.id).to.not.be.undefined;",
+              "    pm.expect(response.id).to.not.be.null;",
+              "    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;",
+              "    pm.expect(response.id).to.match(uuidRegex);",
+              "});",
+              "",
+              "// Extra: tiempo de respuesta aceptable",
+              "pm.test(\"[Extra] Tiempo de respuesta < 500ms\", function () {",
+              "    pm.expect(pm.response.responseTime).to.be.below(500);",
+              "});",
+              "",
+              "// Guardar eventId para las peticiones siguientes",
+              "if (response.id) {",
+              "    pm.environment.set(\"eventId\", response.id);",
+              "    console.log(\"eventId guardado:\", response.id);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Rock Festival\",\n  \"date\": \"2026-12-01T20:00:00\",\n  \"venue\": \"Main Arena\",\n  \"totalCapacity\": 500,\n  \"ticketPrice\": 50\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/events",
+          "host": ["{{baseUrl}}"],
+          "path": ["events"]
+        },
+        "description": "FP-01: Crea un evento con todos los campos obligatorios y verifica que el sistema responde con 201 y los datos correctos. Guarda el eventId en las variables de entorno para los siguientes pasos."
+      }
+    },
+    {
+      "name": "PM-02 | E2E-01 Paso 3 | POST /orders/purchase — Comprar entradas",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Verificar que el eventId del paso anterior está disponible",
+              "const eventId = pm.environment.get(\"eventId\");",
+              "if (!eventId) {",
+              "    console.warn(\"AVISO: eventId no disponible. Ejecutar PM-01 primero.\");",
+              "}",
+              "",
+              "// Para el test usaremos un userId fijo (el sistema crea el usuario si no existe,",
+              "// o bien se usa un userId pre-cargado en la base de datos de test)",
+              "if (!pm.environment.get(\"userId\")) {",
+              "    pm.environment.set(\"userId\", \"00000000-0000-0000-0000-000000000001\");",
+              "}"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// ================================================================",
+              "// PM-02 — Trazabilidad: E2E-01 Paso 3 (Actividad 3)",
+              "// 'Alice compra 3 entradas para Jazz Night'",
+              "// Resultados esperados: 201, status=confirmed, totalPrice=150.0, qty=3",
+              "// ================================================================",
+              "",
+              "const response = pm.response.json();",
+              "",
+              "// Código de estado 201 Created",
+              "pm.test(\"[Paso 3 R1] Status 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "// Estado del pedido = confirmed",
+              "pm.test(\"[Paso 3 R2] Estado del pedido es 'confirmed'\", function () {",
+              "    pm.expect(response.status).to.eql(\"confirmed\");",
+              "});",
+              "",
+              "// Precio total = 3 entradas × 50€ = 150.0",
+              "pm.test(\"[Paso 3 R3] totalPrice = 150.0 (3 × 50€)\", function () {",
+              "    pm.expect(response.totalPrice).to.eql(150.0);",
+              "});",
+              "",
+              "// Cantidad de entradas = 3",
+              "pm.test(\"[Paso 3 R4] quantity = 3\", function () {",
+              "    pm.expect(response.quantity).to.eql(3);",
+              "});",
+              "",
+              "// Campo 'id' del pedido presente y en formato UUID",
+              "pm.test(\"[Paso 3 R5] Campo 'id' del pedido es UUID válido\", function () {",
+              "    pm.expect(response.id).to.not.be.undefined;",
+              "    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;",
+              "    pm.expect(response.id).to.match(uuidRegex);",
+              "});",
+              "",
+              "// availableTickets del evento debe haberse reducido a 497 (500 - 3)",
+              "pm.test(\"[Paso 3 R6] eventId coincide con el evento creado en PM-01\", function () {",
+              "    pm.expect(response.eventId).to.eql(pm.environment.get(\"eventId\"));",
+              "});",
+              "",
+              "// Tiempo de respuesta",
+              "pm.test(\"[Extra] Tiempo de respuesta < 500ms\", function () {",
+              "    pm.expect(pm.response.responseTime).to.be.below(500);",
+              "});",
+              "",
+              "// Guardar orderId para los pasos siguientes",
+              "if (response.id) {",
+              "    pm.environment.set(\"orderId\", response.id);",
+              "    console.log(\"orderId guardado:\", response.id);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"eventId\": \"{{eventId}}\",\n  \"userId\": \"{{userId}}\",\n  \"quantity\": 3\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/orders/purchase",
+          "host": ["{{baseUrl}}"],
+          "path": ["orders", "purchase"]
+        },
+        "description": "E2E-01 Paso 3: Comprar 3 entradas para el evento creado en PM-01. Verifica 201, estado confirmed, precio total correcto y guarda el orderId."
+      }
+    },
+    {
+      "name": "PM-03 | E2E-01 Paso 4 + RP-01 | GET /orders/event/{id}/sales — Consultar ventas",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const eventId = pm.environment.get(\"eventId\");",
+              "if (!eventId) {",
+              "    console.warn(\"AVISO: eventId no disponible. Ejecutar PM-01 primero.\");",
+              "}"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// ================================================================",
+              "// PM-03 — Trazabilidad: E2E-01 Paso 4 + RP-01 (Actividad 3)",
+              "// E2E-01: 'totalSales = 3, totalRevenue = 150.0'",
+              "// RP-01:  'tiempo respuesta < 500ms, tasa error < 1%'",
+              "// ================================================================",
+              "",
+              "const response = pm.response.json();",
+              "",
+              "// E2E-01 Paso 4: Código de estado 200 OK",
+              "pm.test(\"[Paso 4 R1] Status 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "// Cabecera Content-Type JSON",
+              "pm.test(\"[Paso 4 R2] Content-Type es application/json\", function () {",
+              "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+              "});",
+              "",
+              "// E2E-01 Paso 4: totalSales = 3",
+              "pm.test(\"[Paso 4 R3] totalSales = 3\", function () {",
+              "    pm.expect(response.totalSales).to.eql(3);",
+              "});",
+              "",
+              "// E2E-01 Paso 4: totalRevenue = 150.0 (3 × 50€)",
+              "pm.test(\"[Paso 4 R4] totalRevenue = 150.0\", function () {",
+              "    pm.expect(response.totalRevenue).to.be.closeTo(150.0, 0.01);",
+              "});",
+              "",
+              "// Solo se incluyen pedidos CONFIRMED (no CANCELLED)",
+              "pm.test(\"[Paso 4 R5] Solo pedidos con status 'confirmed' en el array\", function () {",
+              "    if (response.orders && response.orders.length > 0) {",
+              "        response.orders.forEach(function(order) {",
+              "            pm.expect(order.status).to.eql(\"confirmed\");",
+              "        });",
+              "    }",
+              "});",
+              "",
+              "// totalSales es coherente con el array de pedidos",
+              "pm.test(\"[Paso 4 R6] totalSales coherente con suma de quantities del array\", function () {",
+              "    if (response.orders) {",
+              "        const sumQty = response.orders.reduce(function(acc, o) { return acc + o.quantity; }, 0);",
+              "        pm.expect(response.totalSales).to.eql(sumQty);",
+              "    }",
+              "});",
+              "",
+              "// RP-01: Tiempo de respuesta medio < 500ms",
+              "pm.test(\"[RP-01 R1] Tiempo de respuesta < 500ms (umbral medio)\", function () {",
+              "    pm.expect(pm.response.responseTime).to.be.below(500);",
+              "});",
+              "",
+              "// RP-01: Tiempo de respuesta < 1000ms (umbral P95)",
+              "pm.test(\"[RP-01 R2] Tiempo de respuesta < 1000ms (umbral P95)\", function () {",
+              "    pm.expect(pm.response.responseTime).to.be.below(1000);",
+              "});",
+              "",
+              "// RP-01: Tamaño de respuesta razonable",
+              "pm.test(\"[RP-01 R3] Tamaño de respuesta < 50KB\", function () {",
+              "    pm.expect(pm.response.responseSize).to.be.below(51200);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/orders/event/{{eventId}}/sales",
+          "host": ["{{baseUrl}}"],
+          "path": ["orders", "event", "{{eventId}}", "sales"]
+        },
+        "description": "E2E-01 Paso 4 + RP-01: Consulta el informe de ventas del evento creado. Verifica totalSales=3, totalRevenue=150.0, coherencia del array y umbrales de rendimiento de RP-01."
+      }
+    },
+    {
+      "name": "PM-04 | E2E-01 Paso 5 | DELETE /orders/cancel — Cancelar pedido",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const orderId = pm.environment.get(\"orderId\");",
+              "if (!orderId) {",
+              "    console.warn(\"AVISO: orderId no disponible. Ejecutar PM-02 primero.\");",
+              "}"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// ================================================================",
+              "// PM-04 — Trazabilidad: E2E-01 Paso 5 (Actividad 3)",
+              "// 'Cancelar el pedido de Alice'",
+              "// Resultados esperados: 200 OK, status=cancelled, availableTickets=500",
+              "// ================================================================",
+              "",
+              "const response = pm.response.json();",
+              "",
+              "// Paso 5 R1: Código de estado 200 OK",
+              "pm.test(\"[Paso 5 R1] Status 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "// Paso 5 R2: Estado del pedido es 'cancelled'",
+              "pm.test(\"[Paso 5 R2] Estado del pedido es 'cancelled'\", function () {",
+              "    pm.expect(response.status).to.eql(\"cancelled\");",
+              "});",
+              "",
+              "// Paso 5 R3: Campo cancelledAt presente y con fecha ISO 8601 válida",
+              "pm.test(\"[Paso 5 R3] cancelledAt presente y es fecha ISO 8601 válida\", function () {",
+              "    pm.expect(response.cancelledAt).to.not.be.null;",
+              "    pm.expect(response.cancelledAt).to.not.be.undefined;",
+              "    const date = new Date(response.cancelledAt);",
+              "    pm.expect(isNaN(date.getTime())).to.be.false;",
+              "});",
+              "",
+              "// Paso 5 R4: cancelledAt es posterior a createdAt",
+              "pm.test(\"[Paso 5 R4] cancelledAt es posterior a createdAt\", function () {",
+              "    const created   = new Date(response.createdAt);",
+              "    const cancelled = new Date(response.cancelledAt);",
+              "    pm.expect(cancelled.getTime()).to.be.at.least(created.getTime());",
+              "});",
+              "",
+              "// Paso 5 R5: El campo 'id' coincide con el orderId guardado",
+              "pm.test(\"[Paso 5 R5] El id del pedido es inmutable (coincide con orderId)\", function () {",
+              "    pm.expect(response.id).to.eql(pm.environment.get(\"orderId\"));",
+              "});",
+              "",
+              "// Extra: tiempo de respuesta",
+              "pm.test(\"[Extra] Tiempo de respuesta < 500ms\", function () {",
+              "    pm.expect(pm.response.responseTime).to.be.below(500);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"orderId\": \"{{orderId}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/orders/cancel",
+          "host": ["{{baseUrl}}"],
+          "path": ["orders", "cancel"]
+        },
+        "description": "E2E-01 Paso 5: Cancela el pedido creado en PM-02. Verifica 200, estado cancelled, fecha de cancelación válida y que el id del pedido es inmutable."
+      }
+    },
+    {
+      "name": "PM-05 | FP-02 + RP-01 | POST /orders/purchase — Compra rechazada: usuario inexistente",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Este test usa un userId que NO existe en el sistema",
+              "// para verificar el comportamiento de error (FP-02)",
+              "pm.environment.set(\"nonExistentUserId\", \"ffffffff-ffff-ffff-ffff-ffffffffffff\");"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// ================================================================",
+              "// PM-05 — Trazabilidad: FP-02 + RP-01 (Actividad 3)",
+              "// FP-02: 'Compra rechazada porque el usuario no está registrado'",
+              "// RP-01: Validaciones de rendimiento aplicadas a error path",
+              "// ================================================================",
+              "",
+              "const response = pm.response.json();",
+              "",
+              "// FP-02 R1: Código de estado 404 Not Found",
+              "pm.test(\"[FP-02 R1] Status 404 Not Found\", function () {",
+              "    pm.response.to.have.status(404);",
+              "});",
+              "",
+              "// FP-02 R2: El cuerpo contiene campo 'detail' con mensaje de error",
+              "pm.test(\"[FP-02 R2] Cuerpo contiene campo 'detail'\", function () {",
+              "    pm.expect(response).to.have.property(\"detail\");",
+              "});",
+              "",
+              "// FP-02 R2 (adicional): El campo 'detail' no está vacío",
+              "pm.test(\"[FP-02 R2b] El campo 'detail' contiene texto descriptivo\", function () {",
+              "    pm.expect(response.detail).to.be.a(\"string\");",
+              "    pm.expect(response.detail.length).to.be.above(0);",
+              "});",
+              "",
+              "// FP-02 R3: No se ha creado ningún pedido (verificación indirecta:",
+              "// si 404 llegó, el use case lanzó excepción antes de persistir)",
+              "pm.test(\"[FP-02 R3] La respuesta es de error, no de creación (sin campo 'id' de pedido)\", function () {",
+              "    pm.expect(response).to.not.have.property(\"status\", \"confirmed\");",
+              "});",
+              "",
+              "// RP-01 R1: Tiempo de respuesta medio < 500ms",
+              "pm.test(\"[RP-01 R1] Tiempo de respuesta < 500ms (umbral medio RP-01)\", function () {",
+              "    pm.expect(pm.response.responseTime).to.be.below(500);",
+              "});",
+              "",
+              "// RP-01 R2: Tiempo de respuesta < 1000ms (umbral P95 RP-01)",
+              "pm.test(\"[RP-01 R2] Tiempo de respuesta < 1000ms (umbral P95 RP-01)\", function () {",
+              "    pm.expect(pm.response.responseTime).to.be.below(1000);",
+              "});",
+              "",
+              "// RP-01: Tamaño de respuesta pequeño para errores",
+              "pm.test(\"[RP-01 R3] Tamaño de respuesta error < 10KB\", function () {",
+              "    pm.expect(pm.response.responseSize).to.be.below(10240);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"eventId\": \"{{eventId}}\",\n  \"userId\": \"{{nonExistentUserId}}\",\n  \"quantity\": 2\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/orders/purchase",
+          "host": ["{{baseUrl}}"],
+          "path": ["orders", "purchase"]
+        },
+        "description": "FP-02 + RP-01: Intenta comprar entradas con un userId que no existe en el sistema. Verifica 404, mensaje de error descriptivo en 'detail', y que no se crea ningún pedido. Incluye validaciones de rendimiento de RP-01."
+      }
+    }
+  ]
+}

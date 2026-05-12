@@ -1,0 +1,23 @@
+services:
+
+  newman:
+    build:
+      context: ./postman
+      dockerfile: Dockerfile.newman
+    container_name: gigsound-newman
+    image: gigsound-newman:latest
+
+    environment:
+      - BASE_URL=http://host-gateway:8080
+
+    extra_hosts:
+      - "host-gateway:host-gateway"
+
+    volumes:
+      - ./postman/reports:/etc/newman/reports
+
+    restart: "no"
+
+    labels:
+      com.gigsound.role: "test-runner"
+      com.gigsound.activity: "actividad-4"
