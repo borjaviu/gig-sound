@@ -1,0 +1,16 @@
+.states
+assets/external/
+*.db
+*.py[cod]
+.web
+__pycache__/
+
+# Java / Maven
+backend-java/target/
+
+# Python venvs
+venv/
+.venv/
+
+# Env files
+.env
